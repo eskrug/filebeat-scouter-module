@@ -22,14 +22,13 @@ Filebeat scouter module
     # Filebeat will choose the paths depending on your OS.
     # 스카우터 메트릭 로그 파일 위치와 파일 패턴을 설정한다. 
     var.paths:
-     - /path/scouter/server/ext_plugin_filelog/scouter-*.json   
-                                                                     
+     - /path/scouter/server/ext_plugin_filelog/scouter-*.json                                                                        
 ```
 # 데모 
  - [스카우터 샘플 로그 기반 엘라스틱 연동 데모](./demo/SCOUTER-LOG-DEMO.md)    
 # 운영  
  - 스카우터를 운영중이라면 스카우터 메트릭 로그 플러그인을 설치하여 스카우터 서버를 재시작한다.
-   -  자세한 내용을 여기 주소로 https://github.com/scouter-contrib/scouter-plugin-server-metriclog 들어가 설치 방법을 확인 한다. 
+   -  자세한 내용은 여기 주소로 https://github.com/scouter-contrib/scouter-plugin-server-metriclog 들어가 확인한다.    
 # support elastic version 
 1. elastic search version : 7.x 이상  
 # dashboards 종류

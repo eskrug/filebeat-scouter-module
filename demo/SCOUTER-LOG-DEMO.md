@@ -19,7 +19,8 @@ $ tar xvfz scouter-sample-files.tar.gz
 $ tar xvfz filebeat-oss-7.3.3-SNAPSHOT-linux-x86_64.tar.gz 
 ```    
 # Step 2 
- - Elastic + Kibana를 로컬에 docker-compose를 이용하여 서버를 실행 한다.
+ - 스카우터 메트릭 샘플 로그를 엘라스틱서치에 넣어 화면을 보려면 조건적으로 최소한 Elastic Search + Kibana가 있어야 한다. 만약 있다면 스킵 한다.     
+ - Elastic + Kibana를 로컬에 docker-compose를 이용하여 실행 한다. 
 ```       
 $cat > docker-compose.yml 
 version: '3.2'
@@ -35,8 +36,9 @@ $docker-compose up -d
 ```
  - 참고로 영구볼륨을 설정 하지 않았기 때문에 만약 재기동시에는 이전에 엘라스틱 서치에 들어간 데이터는 사란진다.
  - elastic + kibana가 정상적으로 기동 여부 확인 후 파일 비트 설정을 한다.
-# Step 3   
- - 스카우터 대시보드 Setup 
+# Step 3    
+ - 스카우터 메트릭 로그 분석 전용 대시보드 Setup 실행 
+ - 파일 비트 명령어로 대시보드와 pipeline을 설정한다. pipeline는 스카우터 로그 데이터가  엘라스틱 서치에 넣는 과정에서 데이터를 한번 전처리 하는 역할을 수행한다.        
 ```   
 $ cd ~/filebeat-7.3.3-SNAPSHOT-linux-x86_64 
 $ ./filebeat setup -E setup.dashboards.zip=https://github.com/eskrug/filebeat-scouter-module/releases/download/7.3.3/scouter-dashboard.zip
@@ -99,7 +101,7 @@ $./filebeat -e
 ```
  curl -v GET "localhost:9200/filebeat-*/_count?pretty"
 ``` 
- - 마지막 브라우저에 아래 주소를 입력후 키바나에 접속해 스카우터 대시보드를 확인한다. 
+ - 마지막으로 브라우저에 아래 주소를 입력후 키바나에 접속해 스카우터 대시보드를 확인한다. 
 ```
  http://localhost:5601
 ```  
