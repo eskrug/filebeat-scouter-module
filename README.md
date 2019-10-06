@@ -31,7 +31,7 @@ Filebeat scouter module
    -  자세한 내용은 여기 주소로 https://github.com/scouter-contrib/scouter-plugin-server-metriclog 들어가 확인한다.    
 # support elastic version 
 1. elastic search version : 7.x 이상  
-# dashboards 종류
+# 내재된 dashboards 종류
 - scouter xlog overview
   - xlog 기반 오버뷰 가시화  
 ![xlog-overview](./assert/xlog-overview.png)

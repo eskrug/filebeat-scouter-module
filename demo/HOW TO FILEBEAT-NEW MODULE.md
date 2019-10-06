@@ -7,8 +7,8 @@
 # 런타임 파이프 라인 구조 
   Log -> filebeat -> elasticsearch -> Kibana
 
-1. filebeat에서 로그를 tail를 하면서 데이터를 읽어 엘라스틱 서치에 전달 합니다. 
-2. 엘라스틱서치에는 데이터 가공 후 실제 indexing 작업을 수행 합니다. 전처리하는 이녀석의 공식 명칭은 ingest 라고 합니다. 
+1. filebeat에서 로그 데이터를 읽어 엘라스틱 서치에 전달 합니다. 
+2. 엘라스틱서치에는 데이터 가공 후 실제 indexing 작업을 수행 합니다. 공식 명칭은 ingest 라고 합니다. 
  ingest에 궁금하신분들은 아래 링크에서 확인 하세요 <br/>https://www.elastic.co/guide/en/elasticsearch/reference/current/ingest.html  
 3. 최종 kibana에서는 엘라스틱 서치에서 처리한 indexing 결과를 확인 할수 있습니다.     
 
@@ -31,23 +31,36 @@
  ## 개발환경구성
 Beats 개발에 사용되는 [Go](https://golang.org/) 1.12.10 버전을 설치하세요.
 
-Go를 설치한 후 $GOPATH 환경 변수가 개발 위치를 가리키도록 정하고 $GOPATH/bin이 PATH에 있는지 확인하십시오.
-Git 복제 위치가 중요합니다. 리포지토리에 사용 된 URL과 일치하는 GOPATH 아래에 디렉토리 구조를 만든 다음 새 디렉토리에서 비트 저장소를 복제하세요
+- Go를 설치한 후 $GOROOT,$GOPATH 환경 변수를 설정 하세요 
+- GOROOT는 Go를 설치한 경로로 가리키도록 합니다. 
+- GOPATH는 개발위치를 가리키도록 합니다.
+- $GOPATH/bin과 $GOROOT/bin이 $PATH 환경 변수에 있는지 확인하십시오.
 
-```
+위 절차대로  수행하고 git clone 리포지토리에 사용 된 URL과 일치하는 GOPATH 아래에 디렉토리 구조를 만든 다음 새 디렉토리에서 비트 저장소를 clone 하세요
+
+```bash
+# GO 설치 및 환경 변수 설정 
  $ wget https://dl.google.com/go/go1.12.10.linux-amd64.tar.gz;sudo tar xvfz go1.12.10.linux-amd64.tar.gz -C /usr/local
  $ export GOROOT=/usr/local/go
  $ export GOPATH=/home/{user}/elastic_beats
+ $ export PATH=$PATH:$GOROOT/bin:$GOPATH:bin
+# GO 프로젝트 설정  
  $ mkdir -p ${GOPATH}/src/github.com/elastic
  $ git clone https://github.com/elastic/beats ${GOPATH}/src/github.com/elastic/beats    
 ``` 
-## Beats 빌드 시도
+만약 Go 프로젝트 환경변수를 제대로 설정을 않한다면 빌드시 오류가 발생합니다.
+'''녹화하면'''
+## filebeats 빌드 
 그런 다음 Makefile을 사용하여 특정 Beat를 컴파일 할 수 있습니다. 파일 비트의 경우 :
 ```bash
 $ cd ${GOPATH}/src/github.com/elastic/beats/filebeat
 $ make
 ```  
+'''녹화하면'''
+
 ## filebeat module 생성
+이제 파일 모듈을 생성을 하겠습니다. 
+
 ```bash
 $ cd ${GOPATH}/src/github.com/elastic/beats/filebeat
 $ make create-module MODULE=scouter
