@@ -50,26 +50,27 @@ Beats 개발에 사용되는 [Go](https://golang.org/) 1.12.10 버전을 설치�
  $ git clone https://github.com/elastic/beats ${GOPATH}/src/github.com/elastic/beats    
 ``` 
 만약 Go 프로젝트 환경변수를 제대로 설정을 않한다면 빌드시 오류가 발생합니다.
-'''녹화하면'''
+
 ## filebeats 빌드 
 그런 다음 Makefile을 사용하여 특정 Beat를 컴파일 할 수 있습니다. 파일 비트의 경우 :
 ```bash
 $ cd ${GOPATH}/src/github.com/elastic/beats/filebeat
 $ make
 ```  
-'''녹화하면'''
+
 
 ## filebeat module 생성
 ### 개요 
-각 Filebeat 모듈은 하나 이상의 "fileset"로 구성됩니다. 일반적으로 지원하는 각 서비스 (Nginx의 경우 nginx, Mysql의 경우 mysql 등)에 대한 모듈과 서비스가 생성하는 각 유형의 로그에 대한 파일 세트를 만듭니다. 예를 들어 Nginx 모듈에는 액세스 및 오류 파일 세트가 있습니다. 하나 이상의 일 세트가있는 새 모듈 또는 기존 모듈의 새 파일 세트를 제공 할 수 있습니다.
+각 Filebeat 모듈은 하나 이상의 "fileset"로 구성됩니다. 일반적으로 지원하는 각 서비스 (Nginx의 경우 nginx, Mysql의 경우 mysql 등)에 대한 모듈과 서비스가 생성하는 각 유형의 로그에 대한 파일 세트를 만듭니다. 
+예를 들어 Nginx 모듈에는 액세스 및 오류 파일 세트가 있습니다. 새 모듈 또는 기존 모듈에 새 파일 세트를 제공 할 수 있습니다.
 
-filebeat 폴더 안에서 이제 파일 모듈을 생성을 하겠습니다.     
+filebeat 폴더 안에서 이제 새 파일 모듈을 생성을 하겠습니다.여기서는 신규 module 이름은 scouter로 하겠습니다.         
 ```bash
 $ cd ${GOPATH}/src/github.com/elastic/beats/filebeat
 # make create-module MODULE={module}
 $ make create-module MODULE=scouter
 ```
-make create-module 명령을 실행하면 생성 된 파일과 함께 module/scouter에서 모듈을 찾을 수 있습니다. 이 디렉토리에는 다음 파일이 포함되어 있습니다  
+make create-module 명령을 실행하면 생성 된 파일과 함께 module/scouter 에서 모듈을 찾을 수 있습니다. 이 디렉토리에는 다음 파일이 포함되어 있습니다  
 
 ```
 module/scouter
@@ -80,32 +81,24 @@ module/scouter
     └── config.yml    
     └── kibana                  
 ``` 
-자 하나씩 파일을 보도록 하겠습니다. 
+하나씩 파일을 살펴 보도록 하겠습니다. 
 
 ***module.yml***
 
-이 파일에는 모듈에 사용 가능한 모든 대시 보드 목록이 포함되어 있으며  각 대시 보드는 대시 보드가 로컬로 저장된 ID 및 json 파일 이름으로 정의됩니다. 새 fileset 생성시 이 파일은 새 fileset 에 대한 "기본"대시 보드 설정으로 자동 업데이트됩니다.
+이 파일에는 모듈에 사용 가능한 모든 대시 보드 목록이 포함되어 있으며  각 대시 보드는 대시 보드가 로컬로 저장된 ID 및 json 파일 이름으로 정의됩니다.
+새 fileset 생성시 이 파일은 새 fileset 에 대한 **기본** 대시 보드 설정로 자동 업데이트됩니다. 처음 생성시에는 내용이 비어 있습니다. 
+나중에 dashbaord를 import 할때 사용합니다.  
 
-```yaml
-dashboards:
-- id: 23d0ec10-e02f-11e9-b41a-bd190673ea83
-  file: Filebeat-scouter-host.json
-- id: bdb3c200-e00a-11e9-b41a-bd190673ea83
-  file: Filebeat-scouter-xlog-overview.json
-- id: d4430860-e027-11e9-b41a-bd190673ea83
-  file: Filebeat-scouter-javaee.json
-- id: f521e660-e017-11e9-b41a-bd190673ea83
-  file: Filebeat-scouter-xlog-analysis.json
-```
 
 ***_meta/docs.asciidoc***
 
-이 파일에는 모듈 별 설명서가 포함되어 있습니다.테스트 된 서비스 버전 및 각 파일 세트에 정의 된 변수에 대한 정보를 포함해야합니다.
-참고로 빌드시 fields에서 정의한 description이 자동으로 이 문서에 업데이트가 됩니다. 필요시 작성을 해주세요   
+이 파일에는 모듈 별 설명서가 포함되어 있습니다. 테스트 된 버전과 각 파일 세트에 정의 된 변수 정보를 포함 합니다. 
+빌드시 fields 에서 정의한 description 이 자동으로 이 문서에 업데이트가 됩니다.     
+ 
  
 ***_meta/fields.yml***
 
-모듈 수준 fields.yml에는 모듈 수준 필드에 대한 설명이 포함되어 있습니다. 이 파일의 제목과 설명을 검토하고 업데이트하십시오. title 문서에서 제목으로 사용되므로 대문자를 사용하는 것이 가장 좋습니다.
+모듈 수준 fields.yml에는 모듈에 대한 간략한 설명이 포함되어 있습니다. 이 파일에 title과 description을 업데이트 합니다.   
 
 ```yaml
 - key: scouter
@@ -121,7 +114,7 @@ dashboards:
 
 ***_meta/config.yml***
 
-해당 모듈에 대한 default 설정값이 포함되어 있습니다. 빌드시 해당 파일을 참조하여 modules.d/scouter.yml.disabled 에 적용됩니다.
+해당 모듈에 대한 default 설정을 합니다. 빌드 과정에서 해당 파일을 참고하여 모듈 설정 파일로 생성합니다.  
 
 ```yaml
 - module: scouter
@@ -138,7 +131,8 @@ dashboards:
 ``` 
 
 ## filebeat module fileset 생성
-filebeat 폴더 안에서 이제 fileset을 생성을 하겠습니다.
+
+스카우터 로그를 읽어 동작시키기 위한 fileset 생성을 하겠습니다.
 
 ```bash
 $ cd ${GOPATH}/src/github.com/elastic/beats/filebeat
@@ -146,9 +140,8 @@ $ cd ${GOPATH}/src/github.com/elastic/beats/filebeat
 $ make create-fileset MODULE=scouter FILESET=log
 ```
 
-make create-fileset 명령을 실행하면 생성 된 파일과 함께 모듈 scouter/log에서 fileset 를 찾을 수 있습니다. 이 디렉토리에는 다음 파일이 포함되어 있습니다. 해당 파일셋은 최종적으로 어떻 파일일때 어떻게 전처리 할것인지 정의 합니다.  
-
-여기서는 스카우터 로그 데이터를 전처리하는 과정이 들어 갔니다.  
+make create-fileset 명령을 실행하면  생성 된 파일과 함께 scouter/log에서 fileset을 찾을 수 있습니다. 
+이 디렉토리에는 다음 파일이 포함되어 있습니다.     
 
 ```bash
 module/scouter/log
@@ -163,6 +156,8 @@ module/scouter/log
 │       └── default
 └── test
 ```
+하나씩 파일을 살펴 보도록 하겠습니다. 
+
 ***manifest.yml***
 
 manifest.yml은 변수를 정의하고 다른 파일을 참조하는 모듈의 제어 파일입니다.
