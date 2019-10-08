@@ -485,9 +485,10 @@ POST /_ingest/pipeline/_simulate
      
 
 여기서 주의할점은 시간 필드 입니다. "date"로  선택 필드를 시계열 필드를 변환 후에는 기존 시계열 필드를 삭제 합니다.filebeat 기준 시계열 기준은 
-@timestamp 입니다. timestamp값을 스카우터 로그 기록 시간(scouter.log.startTime) 필드로 변환 하고, 기존 필드를 remove 해야 합니다. 
+@timestamp 입니다. timestamp값을 스카우터 로그 기록 시간(scouter.log.startTime) 필드로 변환 하고, date 필드 들은 반드시 remove 합니다. 
 
-만약 삭제 하지 않을시에는 filebeat에서 scouter.log.startTime가 존재시 date format error 문법 에러가 발생 하여 indexing 못한다고 에러 발생시킵니다.만약 기존 시간 필드를 유지 하고 있을경우 필드 다른 이름으로 저장 하세요
+만약 삭제 하지 않을시에는 filebeat에서 date 필드들이 date format error 발생 하면서 indexing 못한다고 나옵니다. 기존 시간 필드를 유지 하고 싶을때는 다른 이름으로 저장 하세요
+
  
 ```json
 {
@@ -637,9 +638,11 @@ ${GOPATH}/src/github.com/elastic/beats/filebeat/fileds.yml 이 파일에 scouter
                 type: keyword
 ....                
 ``` 
- 
+
+이러한 반복작업을 한후 원하는 데이터 타입이 정상적으로 들어갔으면 해당 작업을 마무리 합니다. 
+
 ## filebeat 만 빌드 하기
-이제 데이터 처리방법도 여기서 끝났습니다. 그려면 여기서 배포 파일을 만들어볼까요?
+이제 데이터 처리,index template 개발 작업이 끝났습니다. 그려면 여기서 배포 파일을 만들어볼까요?
 아래 명령어로 filebeat만 배포 파일을 실행합니다.  
 ```
 $ cd ${GOPATH}/src/github.com/elastic/beats/filebeat
@@ -649,14 +652,14 @@ $ cd ${GOPATH}/src/github.com/elastic/beats/filebeat/build/distributions
 
 [![asciicast](https://asciinema.org/a/272999.svg)](https://asciinema.org/a/272999)
 
+빌드 결과를 distributions 에서 확인 합니다. 리눅스 외에 다른 빌드 플래폼 목록을 알고 싶다면 아래 명령어로 확인 합니다. 
 
-리눅스 외에 다른 빌드 플래폼 목록을 알고 싶다면 아래 명령어로 확인 합니다. 
 ```
 $ go tool dist list
 ```
 
 ## filebeat module 신규 dashboard 만들기
-전제는 filbeat 신규 모듈로 키바나에서 대시보드를 만들었고 이를 다시 filbeat 모듈에 내재 하고자 한다고 가정하겠습니다. 
+filbeat 신규 모듈로 키바나에서 대시보드를 만들었고 이를 다시 filbeat 모듈에 내재 하고자 한다고 가정하겠습니다. 
   
 ![dashboard-export](../assert/filebeat-dashboard-export.gif)  
 
