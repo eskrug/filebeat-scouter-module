@@ -12,7 +12,7 @@
  ingest에 궁금하신분들은 아래 링크에서 확인 하세요 <br/>https://www.elastic.co/guide/en/elasticsearch/reference/current/ingest.html  
 3. 최종 kibana에서는 엘라스틱 서치에서 처리한 indexing 결과를 확인 할수 있습니다.     
 
-위에 순서 처럼 엘라스틱 서치가 일을 할수 있도록 filbeat 모듈만 개발하기만 하면 됩니다. 사실 개발이라기 보다는 설정에 더 가깝습니다.
+위에 순서 처럼 엘라스틱 서치가 일을 할수 있도록 filebeat 모듈만 개발하기만 하면 됩니다. 사실 개발이라기 보다는 설정에 더 가깝습니다.
 제가 그럼 어떻게 설정 했는지 잘 보시기면 하면됩니다. 어려워 보이겠지만 아주 쉬워요 
       
 # 전체 개발 과정 요약 
@@ -21,9 +21,9 @@
 1. Beats 빌드 시도   
 1. filebeat module 생성 
 1. filebeat module fileset 생성
-1. filebeat module indexing pattern 등록 확인   
 1. filebeat ingest pipeline 작성
 1. filebeat ingest pipeline 테스트
+1. filebeat module indexing pattern 등록 확인   
 1. filebeat module 신규 dashboard import 하기           
 1. filebeat 만 빌드 하기 
 1. filebeat 모듈 테스트
@@ -170,7 +170,7 @@ module/scouter/log
 ├── _meta
 │   └── fields.yml
 │   └── kibana
-│       └── default
+│       └── defaultfilbeat
 └── test
 ```
 [![asciicast](https://asciinema.org/a/272982.svg)](https://asciinema.org/a/272982)
@@ -659,7 +659,7 @@ $ go tool dist list
 ```
 
 ## filebeat module 신규 dashboard 만들기
-filbeat 신규 모듈로 키바나에서 대시보드를 만들었고 이를 다시 filbeat 모듈에 내재 하고자 한다고 가정하겠습니다. 
+filebeat 신규 모듈로 키바나에서 대시보드를 만들었고 이를 다시 filebeat 모듈에 내재 하고자 한다고 가정하겠습니다. 
   
 ![dashboard-export](../assert/filebeat-dashboard-export.gif)  
 
@@ -707,10 +707,10 @@ $ cd ${GOPATH}/src/github.com/elastic/beats/build/distributions/dashboards
 
 배포 위치로 찾아 들어가 압축을 해제 하면 해당 파일 정상적으로 들어가 있은것을 알수 있습니다. 
 
-참고로 제 PC가  대시보드 빌드 시간 쾌 걸려 filbeat만 빌드 하여 kibana 셋업을 시도 하고 정상적으로
+참고로 제 PC가  대시보드 빌드 시간 쾌 걸려 filebeat만 빌드 하여 kibana 셋업을 시도 하고 정상적으로
 잘 kibana에 setup이 되는지 확인 했습니다. 
 
-filbeat 재 빌드 하여  대시보드를 다시 셋업 하여 정상적으로 대시보드가 들어가는지 확인 합니다. 
+filebeat 재 빌드 하여  대시보드를 다시 셋업 하여 정상적으로 대시보드가 들어가는지 확인 합니다. 
 ```
 $ cd ${GOPATH}/src/github.com/elastic/beats/filebeat
 $ PLATFORMS='linux/amd64' make snapshot
@@ -719,18 +719,18 @@ $ cd ${GOPATH}/src/github.com/elastic/beats/filebeat/build/distributions
 
 리눅스 배포만으로 압축해제후 바로 setup 
 ```
-./filbeat setup
+./filebeat setup
 ```
 
 # 결론 
-처음 개발 가이드 기준으로 filbeat만 가지고 로그 모듈을 개발 만들기를 시도 했을때 막히는 부분이 많았습니다. 
+처음 개발 가이드 기준으로 filebeat 로그 모듈을 개발 만들기를 시도 했을때 막히는 부분이 많았습니다. 
 
 첫번째는 개발 가이드 문구 내용이 잘 이해가 안됐습니다. 나중에 다시를 10번 넘게 반복했을때는 왜 이렇게 했는지 이해가 됐습니다.
 
 두번째는 에러 문구를 가지고 비트 개발 포럼에 검색해도 명쾌한 답변은 없어 애를 먹었는데 이러한 부분은 개발 가이드나 안에 구현된 nginx 모듈이나 kibana 모듈을 보면서 
 해결해 갔습니다. 어떻게 보면 감이겠죠. 
 
-마지막으로 제가 제가 원하던 형태의 개발 모듈이 나왔을때는 기분 좋았습니다.기존 불편했던 filbeat,logstash의 수동 설정 부분을 스카우터 로그 모듈만으로 동작시켜 제외 시켜 봤으니깐요.
+마지막으로 제가 제가 원하던 형태의 개발 모듈이 나왔을때는 기분 좋았습니다.기존 불편했던 filebeat,logstash의 수동 설정 부분을 스카우터 로그 모듈만으로 동작시켜 제외 시켜 봤으니깐요.
 매번 느끼는 거지만 열정과 시간이 있으면 불가능은 없는것 같습니다. 
           
          
