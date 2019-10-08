@@ -49,14 +49,15 @@ Beats 개발에 사용되는 [Go](https://golang.org/) 1.12.10 버전을 설치�
  $ mkdir -p ${GOPATH}/src/github.com/elastic
  $ git clone https://github.com/elastic/beats ${GOPATH}/src/github.com/elastic/beats    
 ``` 
-만약 Go 프로젝트 환경변수를 제대로 설정을 않한다면 빌드시 오류가 발생합니다.
+[![asciicast](https://asciinema.org/a/272978.svg)](https://asciinema.org/a/272978)
 
 ## filebeats 빌드 
-그런 다음 Makefile을 사용하여 특정 Beat를 컴파일 할 수 있습니다. 파일 비트의 경우 :
+그런 다음 Makefile을 사용하여 특정 Beat를 컴파일 할 수 있습니다. filebeat만 빌드를 해보겠습니다. 
 ```bash
 $ cd ${GOPATH}/src/github.com/elastic/beats/filebeat
 $ make
 ```  
+[![asciicast](https://asciinema.org/a/272979.svg)](https://asciinema.org/a/272979)
 
 
 ## filebeat module 생성
@@ -64,7 +65,7 @@ $ make
 각 Filebeat 모듈은 하나 이상의 "fileset"로 구성됩니다. 일반적으로 지원하는 각 서비스 (Nginx의 경우 nginx, Mysql의 경우 mysql 등)에 대한 모듈과 서비스가 생성하는 각 유형의 로그에 대한 파일 세트를 만듭니다. 
 예를 들어 Nginx 모듈에는 액세스 및 오류 파일 세트가 있습니다. 새 모듈 또는 기존 모듈에 새 파일 세트를 제공 할 수 있습니다.
 
-filebeat 폴더 안에서 이제 새 파일 모듈을 생성을 하겠습니다.여기서는 신규 module 이름은 scouter로 하겠습니다.         
+filebeat 폴더 안에서 이제 새 파일 모듈을 생성을 하겠습니다.여기서는 신규 module 이름을 scouter로 하겠습니다.         
 ```bash
 $ cd ${GOPATH}/src/github.com/elastic/beats/filebeat
 # make create-module MODULE={module}
@@ -80,29 +81,32 @@ module/scouter
     └── fields.yml
     └── config.yml    
     └── kibana                  
-``` 
-하나씩 파일을 살펴 보도록 하겠습니다. 
+```
 
+ 
+[![asciicast](https://asciinema.org/a/272981.svg)](https://asciinema.org/a/272981)
+
+하나씩 파일을 살펴 보도록 하겠습니다. 
 ***module.yml***
 
 이 파일에는 모듈에 사용 가능한 모든 대시 보드 목록이 포함되어 있으며  각 대시 보드는 대시 보드가 로컬로 저장된 ID 및 json 파일 이름으로 정의됩니다.
 새 fileset 생성시 이 파일은 새 fileset 에 대한 **기본** 대시 보드 설정로 자동 업데이트됩니다. 처음 생성시에는 내용이 비어 있습니다. 
 나중에 dashbaord를 import 할때 사용합니다.  
-
+```yaml
+dashboards:
+``` 
 
 ***_meta/docs.asciidoc***
 
-이 파일에는 모듈 별 설명서가 포함되어 있습니다. 테스트 된 버전과 각 파일 세트에 정의 된 변수 정보를 포함 합니다. 
-빌드시 fields 에서 정의한 description 이 자동으로 이 문서에 업데이트가 됩니다.     
- 
+이 파일에는 모듈 별 설명서가 포함되어 있습니다. 빌드시 fileset에 field 에서 정의한 description이 자동으로 이 문서에 업데이트가 됩니다.     
+
  
 ***_meta/fields.yml***
 
-모듈 수준 fields.yml에는 모듈에 대한 간략한 설명이 포함되어 있습니다. 이 파일에 title과 description을 업데이트 합니다.   
-
+fields.yml에는 이 모듈에 대한 간략한 설명이 포함되어 있습니다. 이 파일에 필요시 title 과 description 을 업데이트 합니다.   
 ```yaml
 - key: scouter
-  title: "Scouter"
+  title: "scouter"
   description: >
     scouter Module
   fields:
@@ -116,6 +120,17 @@ module/scouter
 
 해당 모듈에 대한 default 설정을 합니다. 빌드 과정에서 해당 파일을 참고하여 모듈 설정 파일로 생성합니다.  
 
+기존 :  
+```yaml
+- module: scouter
+  # All logs
+  {fileset}:
+    enabled: true
+    # Set custom paths for the log files. If left empty,
+    # Filebeat will choose the paths depending on your OS.
+    #var.paths:                  
+``` 
+변경 :  fileset 플레이스 홀더 부분의 값을 log로 변경 하고 로그 경로 샘플 값을 넣습니다.   
 ```yaml
 - module: scouter
   # All logs
@@ -128,17 +143,18 @@ module/scouter
     #  - /path/scouter/server/ext_plugin_filelog/scouter-counter-javaee.json
     #  - /path/scouter/server/ext_plugin_filelog/scouter-counter-reqproc.json
     #  - /path/scouter/server/ext_plugin_filelog/scouter-xlog.json
-``` 
-
+```
 ## filebeat module fileset 생성
 
 스카우터 로그를 읽어 동작시키기 위한 fileset 생성을 하겠습니다.
+
 
 ```bash
 $ cd ${GOPATH}/src/github.com/elastic/beats/filebeat
 # make create-fileset MODULE={module} FILESET={fileset}
 $ make create-fileset MODULE=scouter FILESET=log
 ```
+
 
 make create-fileset 명령을 실행하면  생성 된 파일과 함께 scouter/log에서 fileset을 찾을 수 있습니다. 
 이 디렉토리에는 다음 파일이 포함되어 있습니다.     
@@ -156,14 +172,34 @@ module/scouter/log
 │       └── default
 └── test
 ```
+[![asciicast](https://asciinema.org/a/272982.svg)](https://asciinema.org/a/272982)
+
 하나씩 파일을 살펴 보도록 하겠습니다. 
 
 ***manifest.yml***
 
 manifest.yml은 변수를 정의하고 다른 파일을 참조하는 모듈의 제어 파일입니다.
-
-파일의 var 섹션은 파일 세트 변수 및 해당 기본값을 정의합니다. 모듈 변수는 다른 구성 파일에서 참조 할 수 있으며 Filebeat 구성으로 런타임시 해당 값을 대체 할 수 있습니다.각 변수에는 기본값이 있어야합니다. 가장 간단한 형태로, 사용자가 미지정 할경우 기본값을 설정 위해 사용 합니다.
+파일의 var 섹션은 파일 세트 변수 및 해당 기본값을 정의합니다.
  
+모듈 변수는 다른 구성 파일에서 참조 할 수 있으며 Filebeat 구성으로 런타임시 해당 값을 대체 할 수 있습니다.각 변수에는 기본값이 있어야합니다. 가장 간단한 형태로, 사용자가 미지정 할경우 기본값을 설정 위해 사용 합니다.
+
+기존 :
+```yaml 
+module_version: 1.0
+
+var:
+  - name: paths
+    default:
+      - /example/test.log*
+    os.darwin:
+      - /usr/local/example/test.log*
+    os.windows:
+      - c:/programdata/example/logs/test.log*
+
+ingest_pipeline: ingest/pipeline.json
+input: config/log.yml
+```
+변경 :  스카우터 로그가 있는 곳으로 기본 설정값으로 변경합니다. 하지만 로그 위치가 유저 기준으로 설치 되기 때문에 큰 의미는 없습니다.   
 ```yaml
 module_version: 1.0
 var:
@@ -177,8 +213,19 @@ ingest_pipeline: ingest/pipeline.json
 input: config/log.yml
 ```
 ***config/log.yml***
-config/  폴더에는 Filebeat입력 구성을 생성하는 템플릿 파일이 있습니다. Filebeat입력은 주로 테일링 파일, 필터링 및 여러 줄을 담당하므로 템플릿 파일에서 구성합니다
 
+filebeat입력 구성을 생성하는 템플릿 파일 입니다. filebeat입력은 주로 테일링 파일, 필터링 및 여러 줄을 담당하는 설정을 합니다. 
+
+기존 : 
+```yaml
+type: log
+paths:
+{{ range $i, $path := .paths }}
+ - {{$path}}
+{{ end }}
+exclude_files: [".gz$"]
+```
+변경 : 
 ```yaml
 type: log
 paths:
@@ -190,10 +237,11 @@ exclude_files: [".gz$"]
 json.keys_under_root: false
 json.add_error_key: true
 ```
+paths 변수는 입력 경로 옵션에 대한 경로 목록을 구성하는 데 사용하고 default로 로그타입으로 정의 되어 있습니다. 변경이 없이 이부분은 나둡니다. 
+스카우터 메트릭 로그 형태가 라인별 JSON으로 구성 되어 있기 때문에 추가적으로 JSON과 연관된 설정을 추가 합니다.
 
-make create-fileset을 실행할 때 자동으로 생성되는 템플릿 파일에서이 찾을 수 있습니다. 이 paths 변수는 입력 경로 옵션에 대한 경로 목록을 구성하는 데 사용됩니다. 스카우터 로그를 읽기 위한 default 타입으로 log를 정의합니다. 
-기본적으로 디코딩 된 JSON은 출력 문서에서 "json"키 아래에 배치되게 json.keys_under_root 속성값을 false 로 설정하고 에러 정보를 확인 하기
-위한  json.add_error_key 값을 활성화 합니다.
+기본적으로 디코딩 된 JSON은 출력 문서에서 "json"키 아래에 배치되게 json.keys_under_root 속성값을 비활성화 하고 에러 정보를 확인 하기
+위한  json.add_error_key 값을 활성화 합니다. 
 
 
 그외에 상세한 타입 및 로그 설정은 아래 링크 주소를 참고해주세요
@@ -203,9 +251,9 @@ make create-fileset을 실행할 때 자동으로 생성되는 템플릿 파일�
 
 ***ingest/pipeline.json***
 
-ingest/pipeline.json 폴더에는 Elasticsearch [Ingest Node](https://www.elastic.co/guide/en/elasticsearch/reference/master/ingest.html) 파이프 라인 구성이 포함되어 있습니다. ingest pipe line 은 로그 라인 파싱을 하고 데이터를 변환 하는 작업을 수행합니다. 설정은 yaml 또는 json으로 pipeline [정의](https://www.elastic.co/guide/en/elasticsearch/reference/master/pipeline.html)를 할수 있습니다.
+ingest/pipeline.json 폴더에는 Elasticsearch [Ingest Node](https://www.elastic.co/guide/en/elasticsearch/reference/master/ingest.html) 파이프 라인 구성이 포함되어 있습니다. ingest pipeline 은 로그 라인 파싱을 하고 데이터를 변환 하는 작업을 수행합니다. 설정은 yaml 또는 json으로 pipeline [정의](https://www.elastic.co/guide/en/elasticsearch/reference/master/pipeline.html)를 할수 있습니다.
 
-여기서는 json pipeline을 구성합니다. processor 값에 ingest가 처리할 방법을 정의하면 됩니다.   
+여기서는 json으로 설정합니다. 이제 processor 값에 ingest가 처리할 방법을 정의하면 됩니다.   
 ```json
 {
   "description": "Pipeline for parsing scouter metric_log logs",
@@ -220,17 +268,136 @@ ingest/pipeline.json 폴더에는 Elasticsearch [Ingest Node](https://www.elasti
   }]
 }
 ```
-processor로 정의 하기전 직접 한번 넣어보고 processor의 내용을 개선을 진행합니다.
+processor로 정의 하기전 filebeat를 빌드하고 실행하여 processor의 내용보면서 개선을 진행합니다. 
   
-## filebeat 실행
- - 스카우터 메트릭 샘플 로그 데이터를 준비하여 filebeat 신규 모듈에서 실행을 해보고 실제 데이터가 어떻게 들어가는지 한다.   
+## filebeat 실행 
+일단 하면 어떻게 처리 되는지  스카우터 메트릭 샘플 로그 데이터를 준비하여 filebeat 신규 모듈에서 실행을 해보고 실제 데이터가 어떻게 들어가는지 확인하고
+index mapping template 도 확인 해야 겠죠? 샘플 데이터는 따로 준비한 디렉토리에 존재 합니다. 샘플 로그를 가지고 실행을 해보죠.
   
-  
+```
+$ make update
+$ ./filebeat -e 
+```
+
+[![asciicast](https://asciinema.org/a/272989.svg)](https://asciinema.org/a/272989)
+
+![filebeat실행](../assert/filebeat실행.gif)
+
+filebeat가 읽은 시간 대로 기준으로 엘라스틱서치에 시계열로 누적 되고 있음알수 있습니다. 그냥 로그를 읽었다 수준입니다. 
+이제 로그을  전처리 하고 indexing mapping 처리 되도록 pipeline 설정을 만들어 보도록 하겠습니다.  
+      
 ## filebeat ingest pipeline 시뮬레이션 테스트
-작성한 파이프 라인이 정상 동작하는지 [Simulate Pipeline API](https://www.elastic.co/guide/en/elasticsearch/reference/master/simulate-pipeline-api.html)를 사용 합니다.
-아래의 내용을 키비나 Dev Tools에 들어가서 실행 하여 시뮬레이션 결과를 확인 합니다.
+
+[Simulate Pipeline API](https://www.elastic.co/guide/en/elasticsearch/reference/master/simulate-pipeline-api.html)를 사용 하여
+pipeline를 구성하여 테스트 해보도록 합니다. 
+
+
+방금전 테스트 한 데이터를 하나면 가져와 샘플링 합니다.  
+
+
+```
+{
+  "_index": "filebeat-8.0.0-2019.10.08-000001",
+  "_type": "_doc",
+  "_id": "DGIiqW0BqpddJseO2lCv",
+  "_version": 1,
+  "_score": null,
+  "_source": {
+    "@timestamp": "2019-10-08T02:11:34.745Z",
+    "json": {
+      "startTime": "20190925T035131.790+0900",
+      "objHash": "zt77a8",
+      "server_id": "SCCOUTER-DEMO-COLLECTOR",
+      "objType": "HOST-ScouterDemo",
+      "objId": "sc-api-demo-s01.localdomain",
+      "objFamily": "host",
+      "host": {
+        "MemT": 1837,
+        "TcpStatCLS": 1,
+        "SysCpu": 0.60557353,
+        "TcpStatTIM": 151,
+        "UserCpu": 2.4217916,
+        "NetOutBound": 67,
+        "TcpStatFIN": 0,
+        "MemU": 1074,
+        "Swap": 0,
+        "startTime": "20190925T035131.790+0900",
+        "DiskReadBytes": 0,
+        "Cpu": 3.2278678,
+        "SwapU": 0,
+        "TcpStatEST": 79,
+        "NetTxBytes": 34902,
+        "SwapT": 0,
+        "PageOut": 0,
+        "NetInBound": 164,
+        "Mem": 58.48545,
+        "NetRxBytes": 20492,
+        "MemA": 762,
+        "DiskWriteBytes": 198962,
+        "PageIn": 0
+      },
+      "objName": "/sc-api-demo-s01.localdomain",
+      "objHost": "sc-api-demo-s01.localdomain"
+    },
+    "service": {
+      "type": "scouter"
+    },
+    "event": {
+      "module": "scouter",
+      "dataset": "scouter.log"
+    },
+    "host": {
+      "name": "orange",
+      "containerized": false,
+      "hostname": "orange",
+      "architecture": "x86_64",
+      "os": {
+        "kernel": "4.15.0-62-generic",
+        "codename": "bionic",
+        "platform": "ubuntu",
+        "version": "18.04.3 LTS (Bionic Beaver)",
+        "family": "debian",
+        "name": "Ubuntu"
+      },
+      "id": "c00b4e802f284e49a05abeeb34ddd32f"
+    },
+    "log": {
+      "offset": 13519441,
+      "file": {
+        "path": "/home/kranian/sample/scouter-counter-host_2019-09-25.json"
+      }
+    },
+    "input": {
+      "type": "log"
+    },
+    "agent": {
+      "type": "filebeat",
+      "ephemeral_id": "c02f62a8-a824-4aef-ac83-5058ae3de0eb",
+      "hostname": "orange",
+      "id": "f881d229-f982-4b35-a9f8-9f9dd80bf958",
+      "version": "8.0.0"
+    },
+    "ecs": {
+      "version": "1.1.0"
+    },
+    "fileset": {
+      "name": "log"
+    }
+  },
+  "fields": {
+    "@timestamp": [
+      "2019-10-08T02:11:34.745Z"
+    ]
+  },
+  "sort": [
+    1570500694745
+  ]
+}
+```
+그려면 원문 데이터 중 _source 항목 중 scouter 연관된 필드만 따로 추출 하여 simulate api에 넣고 실행 합니다. 
+그리고 시뮬레이터 API 중 processors 정의 합니다. 
  
-```json
+```
 [실행구문]                                                                | [결과]
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 POST /_ingest/pipeline/_simulate                                         |  {
@@ -303,14 +470,22 @@ POST /_ingest/pipeline/_simulate                                         |  {
 --------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 ```
+이런식으로 반복적으로 테스트 하고 원하는 결과가 나올때 까지 pipeline processors 테스트 합니다. 
+테스트 했던 결과를 토대로 pipeline processors를 설정 합니다.   
+ 
+
 # filebeat ingest pipeline 작성 
-시뮬레이터로 확인이 끝났으면 감이 잡혔을겁니다. 스카우터 메트릭 로그 형태는 json 필드로 구성 되었고 큰변화 없이 pipeline을 적용 하려고 했습니다.
-하지만 파일비트 [Naming Convetntions](https://www.elastic.co/guide/en/beats/devguide/current/event-conventions.html)이 현재 필드와 맞지 않아 전체를 소문자로 
-바꾸는 작업을 추가적으로 작성 합니다. 여기서 주의할점은 시간 필드 입니다. "date"로  선택 필드를 시계열 필드를 변환 후에는 기존 시계열 필드를 삭제 합니다.  
 
-**만약 삭제 하지 않을시에는 filebeat에서 scouter.log.startTime가 존재시 date format error 문법 에러가 발생 하여 indexing 못한다고 에러를 뱃어냈습니다.** 
+시뮬레이터로 확인이 끝났으면 감이 잡혔을겁니다. pipeline 설정하면 indexing 결과가 이렇게 나오겠구나 하고 예상 하실수 있을겁니다. 
+파일비트 [Naming Convetntions](https://www.elastic.co/guide/en/beats/devguide/current/event-conventions.html) 규칙이 존재 하기때문에 
+해당부분을 읽고 processors를 작성 해야 합니다.  
+     
 
-만약 기존 시간 필드를 유지 하고 있을경우 필드를 set를 이용하여 다른이름으로 저장 하세요
+여기서 주의할점은 시간 필드 입니다. "date"로  선택 필드를 시계열 필드를 변환 후에는 기존 시계열 필드를 삭제 합니다.filebeat 기준 시계열 기준은 
+@timestamp 입니다. timestamp값을 스카우터 로그 기록 시간(scouter.log.startTime) 필드로 변환 하고, 기존 필드를 remove 해야 합니다. 
+  
+만약 삭제 하지 않을시에는 filebeat에서 scouter.log.startTime가 존재시 date format error 문법 에러가 발생 하여 indexing 못한다고 에러 발생시킵니다.  
+만약 기존 시간 필드를 유지 하고 있을경우 필드 다른 이름으로 저장 하세요
  
 ```json
 {
@@ -357,16 +532,17 @@ POST /_ingest/pipeline/_simulate                                         |  {
 }
 
 ``` 
-
+저는 이런식으로 processors를 작성했습니다.  fields를 이용하여 엘라스틱서치  index mapping template을 작성해 보죠  
+  
 **_meta/fields.yml**
+
 fields.yml 파일에는 filebeat의 fileset 필드에 대한 최상위 구조가 포함되어 있습니다. 해당 필드 정의는 아래와 같은 용도로 사용됩니다.
 
 - Elasticsearch indexing mapping template 생성
 - Kibana 인덱스 패턴 생성
 - index document exported 필드 생성 
 
-pipeline에 처리결과가 indexing 생성 작업시 indexing mapping template에 맵핑 되게끝 설정 합니다. 만약 맵핑이 안되는 경우 엘라스틱서치에서는
-다이나믹 맵핑을 시도 합니다. 
+pipeline에 처리결과가 indexing 생성 작업시 데이터 타입이 맵핑 되게 설정 합니다. fields 설정은 아래와 같습니다.   
 
 ```yaml
 - name: log
@@ -451,53 +627,30 @@ $make update
  
 ## filebeat 만 빌드 하기
 이제 여기까지 왔다면 데이터 넣을 준비까지 끝났습니다. 그려면 여기서 배포 파일을 만들어볼까요?
-아래 명령어로 filebeat만 배포 파일을 실행합니다. 
-```
-$ sudo PLATFORMS='!defaults +linux/amd64 +darwin/amd64' make snapshot
-```
-
-## filebeat module 신규 dashboard 만들기
- 
+아래 명령어로 filebeat만 배포 파일을 실행합니다.  
 ```
 $ cd ${GOPATH}/src/github.com/elastic/beats/filebeat
-$ MODULE=scouter ID=AV4REOpp5NkDleZmzKkE mage exportDashboard
-```
-```
-module/scouter/log
-├── manifest.yml
-├── config
-│   └── {fileset}.yml
-├── ingest
-│   └── pipeline.json
-├── _meta
-│   └── fields.yml
-│   └── kibana
-│       └── 7
-│         └──dashboards-AV4REOpp5NkDleZmzKkE.json
-|             
-└── test
+$ PLATFORMS='linux/amd64' make snapshot
+$ cd ${GOPATH}/src/github.com/elastic/beats/filebeat/build/distributions
 ```
 
-```bash
-$ cd ${GOPATH}/src/github.com/elastic/beats
-$ go run dev-tools/cmd/dashboards/export_dashboards.go -yml filebeat/module/scouter/module.yml   
+[![asciicast](https://asciinema.org/a/272999.svg)](https://asciinema.org/a/272999)
+
+
+리눅스 외에 다른 플래폼 목록을 알고 싶다면 아래 명령어로 확인 합니다. 
 ```
-## dashboard index pattern 등록  
+$ go tool dist list
 ```
-```
-## filebeat dashboard 빌드 
-```
-$ cd ${GOPATH}/src/github.com/elastic/beats
-$ make beats-dashboards
-```
-## build 
-```
-sudo PLATFORMS='!defaults +linux/amd64 +darwin/amd64' make snapshot
-```
-# 결론 sudo 
-스카우터 로그 모듈은 제가 불편했던 기존 filbeat,logstash의 설정 과정을 제거 했고, 대시보드까지 내재되었습니다. 
-이로서 목표로 삼았던 수동에 대한 불편한 사항을 해결 했습니다. 
-                    
+
+너무 내용이 길어져 대쉬보드 내재 시키는 방법은 아래 링크에 담도록 하겠습니다. 
+[filebeat module 신규 dashboard 만들기](HOW TO FILEBEAT-DASHBOARD_IMPORT.md) 
+
+
+# 결론 
+기존 불편했던 filbeat,logstash의 수동 설정 부분을 스카우터 로그 모듈만으로 동작시켜 제외 시켜 봤습니다.     
+이로서 목표로 삼았던 수동에 대한 불편한 사항을 해결 했습니다.
+ 
+                 
          
 # 개발 참고 
 1. [개발 환경 구성 방법](https://www.elastic.co/guide/en/beats/devguide/current/beats-contributing.html)
