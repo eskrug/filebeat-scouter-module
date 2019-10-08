@@ -486,9 +486,8 @@ POST /_ingest/pipeline/_simulate
 
 여기서 주의할점은 시간 필드 입니다. "date"로  선택 필드를 시계열 필드를 변환 후에는 기존 시계열 필드를 삭제 합니다.filebeat 기준 시계열 기준은 
 @timestamp 입니다. timestamp값을 스카우터 로그 기록 시간(scouter.log.startTime) 필드로 변환 하고, 기존 필드를 remove 해야 합니다. 
-  
-만약 삭제 하지 않을시에는 filebeat에서 scouter.log.startTime가 존재시 date format error 문법 에러가 발생 하여 indexing 못한다고 에러 발생시킵니다.  
-만약 기존 시간 필드를 유지 하고 있을경우 필드 다른 이름으로 저장 하세요
+
+만약 삭제 하지 않을시에는 filebeat에서 scouter.log.startTime가 존재시 date format error 문법 에러가 발생 하여 indexing 못한다고 에러 발생시킵니다.만약 기존 시간 필드를 유지 하고 있을경우 필드 다른 이름으로 저장 하세요
  
 ```json
 {
@@ -535,7 +534,16 @@ POST /_ingest/pipeline/_simulate
 }
 
 ``` 
-저는 이런식으로 processors를 작성했습니다.  fields를 이용하여 엘라스틱서치  index mapping template을 작성해 보죠  
+저는 이런식으로 processors를 작성했습니다.
+
+시뮬레이터 사용이 아닌 런타임 개발 하실경우 **주의사항** 입니다. 
+filebeat는 기본적으로 ingeset 파이프라인는 한번 로딩 되었으면, 다음 실행시 업데이트는 일어나지 않습니다. 
+따라서 강제적으로 업데이트를 원한 경우 아래 명령어를 사용하세요 
+```
+./filebeat setup --pipelines
+```
+
+fields를 이용하여 엘라스틱서치  index mapping template을 작성해 보죠
   
 **_meta/fields.yml**
 
@@ -545,7 +553,7 @@ fields.yml 파일에는 filebeat의 fileset 필드에 대한 최상위 구조가
 - Kibana 인덱스 패턴 생성
 - index document exported 필드 생성 
 
-pipeline에 처리결과가 indexing 생성 작업시 데이터 타입이 맵핑 되게 설정 합니다. fields 설정은 아래와 같습니다.   
+pipeline에 처리후 indexing 작업시 데이터 타입이 맵핑되게 설정합니다. fields 설정은 아래와 같습니다.   
 
 ```yaml
 - name: log
@@ -583,11 +591,13 @@ pipeline에 처리결과가 indexing 생성 작업시 데이터 타입이 맵핑
 ...
         
 ```
-필드 정의가 잘 되었는지 중간 확인 합니다. 아래 명령을 입력해주세요 
+필드 정의가 잘 되었는지 중간 확인 합니다. 아래 명령을 입력해주세요
+ 
 ```
 $make update
 ```         
-그려면 filebeat 내에 filed.yml 이 scouter 모듈이 필드가 업데이트가 되어 있을것을 확인 할수 있습니다.
+
+${GOPATH}/src/github.com/elastic/beats/filebeat/fileds.yml 이 파일에 scouter 모듈이 필드가 업데이트가 되어 있을것을 확인 할수 있습니다.
 
 ```yaml
 ....
@@ -629,7 +639,7 @@ $make update
 ``` 
  
 ## filebeat 만 빌드 하기
-이제 여기까지 왔다면 데이터 넣을 준비까지 끝났습니다. 그려면 여기서 배포 파일을 만들어볼까요?
+이제 데이터 처리방법도 여기서 끝났습니다. 그려면 여기서 배포 파일을 만들어볼까요?
 아래 명령어로 filebeat만 배포 파일을 실행합니다.  
 ```
 $ cd ${GOPATH}/src/github.com/elastic/beats/filebeat
@@ -640,14 +650,74 @@ $ cd ${GOPATH}/src/github.com/elastic/beats/filebeat/build/distributions
 [![asciicast](https://asciinema.org/a/272999.svg)](https://asciinema.org/a/272999)
 
 
-리눅스 외에 다른 플래폼 목록을 알고 싶다면 아래 명령어로 확인 합니다. 
+리눅스 외에 다른 빌드 플래폼 목록을 알고 싶다면 아래 명령어로 확인 합니다. 
 ```
 $ go tool dist list
 ```
 
-너무 내용이 길어져 대쉬보드 내재 시키는 방법은 아래 링크에 담도록 하겠습니다. 
-[filebeat module 신규 dashboard 만들기](HOW TO FILEBEAT-DASHBOARD_IMPORT.md) 
+## filebeat module 신규 dashboard 만들기
+전제는 filbeat 신규 모듈로 키바나에서 대시보드를 만들었고 이를 다시 filbeat 모듈에 내재 하고자 한다고 가정하겠습니다. 
+  
+![dashboard-export](../assert/filebeat-dashboard-export.gif)  
 
+```
+$ cd ${GOPATH}/src/github.com/elastic/beats/filebeat
+$ MODULE=scouter ID=23d0ec10-e02f-11e9-b41a-bd190673ea83 mage exportDashboard
+$ vi module/scouter/module.yml
+```
+
+[![asciicast](https://asciinema.org/a/273008.svg)](https://asciinema.org/a/273008)
+
+export를 받으면 대시보드 관련된 차트와 index pattern 정도를 내려 받습니다. 
+
+```
+module/scouter/log
+├── manifest.yml
+├── config
+│   └── {fileset}.yml
+├── ingest
+│   └── pipeline.json
+├── _meta
+│   └── fields.yml
+│   └── kibana
+│       └── 7
+│         └──dashboards-23d0ec10-e02f-11e9-b41a-bd190673ea83.json
+|             
+```
+index pattern 정보가 references로 구성되어 있기 때문에 레퍼런스 정보를 삭제 하고 실제 index-pattern  정보를 
+filebeat-*으로 입력 합니다.
+
+![dashboard-modify](../assert/filebeat-dashboard-modify.gif)  
+
+
+## dashboard만 빌드
+
+내재한 대시보드가 정상적으로 릴리스시 잘 될어가는지 대시보드 계열만 빌드 하여 확인 합니다. 
+
+```
+$ cd ${GOPATH}/src/github.com/elastic/beats
+$ make beats-dashboards
+$ cd ${GOPATH}/src/github.com/elastic/beats/build/distributions/dashboards
+```
+
+[![asciicast](https://asciinema.org/a/273010.svg)](https://asciinema.org/a/273010)
+
+배포 위치로 찾아 들어가 압축을 해제 하면 해당 파일 정상적으로 들어가 있은것을 알수 있습니다. 
+
+참고로 제 PC가  대시보드 빌드 시간 쾌 걸려 filbeat만 빌드 하여 kibana 셋업을 시도 하고 정상적으로
+잘 kibana에 setup이 되는지 확인 했습니다. 
+
+filbeat 재 빌드 하여  대시보드를 다시 셋업 하여 정상적으로 대시보드가 들어가는지 확인 합니다. 
+```
+$ cd ${GOPATH}/src/github.com/elastic/beats/filebeat
+$ PLATFORMS='linux/amd64' make snapshot
+$ cd ${GOPATH}/src/github.com/elastic/beats/filebeat/build/distributions
+```
+
+리눅스 배포만으로 압축해제후 바로 setup 
+```
+./filbeat setup
+```
 
 # 결론 
 기존 불편했던 filbeat,logstash의 수동 설정 부분을 스카우터 로그 모듈만으로 동작시켜 제외 시켜 봤습니다.     
