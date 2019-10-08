@@ -87,6 +87,7 @@ module/scouter
 [![asciicast](https://asciinema.org/a/272981.svg)](https://asciinema.org/a/272981)
 
 하나씩 파일을 살펴 보도록 하겠습니다. 
+
 ***module.yml***
 
 이 파일에는 모듈에 사용 가능한 모든 대시 보드 목록이 포함되어 있으며  각 대시 보드는 대시 보드가 로컬로 저장된 ID 및 json 파일 이름으로 정의됩니다.
@@ -398,78 +399,80 @@ pipeline를 구성하여 테스트 해보도록 합니다.
 그리고 시뮬레이터 API 중 processors 정의 합니다. 
  
 ```
-[실행구문]                                                                | [결과]
----------------------------------------------------------------------------------------------------------------------------------------------------
-POST /_ingest/pipeline/_simulate                                         |  {
-{                                                                        |    "docs" : [
-  "pipeline": {                                                          |      {
-    "description": "Pipeline for parsing scouter metric_log logs",       |        "doc" : {
-    "processors": [                                                      |          "_index" : "filebeat-",
-      {                                                                  |          "_type" : "_doc",
-        "rename": {                                                      |          "_id" : "id",
-          "field": "json",                                               |          "_source" : {
-          "target_field": "scouter.log"                                  |            "@timestamp" : "2019-09-25T00:00:06.151+09:00",
-        }                                                                |            "scouter" : {
-      },                                                                 |              "log" : {
-      {                                                                  |                "objHash" : "zt77a8",
-        "date": {                                                        |                "objId" : "sc-api-demo-s01.localdomain",
-          "field": "scouter.log.startTime",                              |                "host" : {
-          "formats": [                                                   |                  "TcpStatFIN" : 1,
-            "yyyyMMdd'T'HHmmss.SSSZ"                                     |                  "TcpStatCLS" : 1,
-          ],                                                             |                  "MemU" : 1074,
-          "timezone": "Asia/Seoul",                                      |                  "NetOutBound" : 70,
-          "target_field": "@timestamp"                                   |                  "TcpStatEST" : 84,
-        }                                                                |                  "NetInBound" : 165,
-      }                                                                  |                  "MemA" : 762,
-    ]                                                                    |                  "SwapT" : 0,
-  },                                                                     |                  "Cpu" : 4.6330476,
-  "docs": [                                                              |                  "SwapU" : 0,
-    {                                                                    |                  "PageOut" : 0,
-      "_index": "filebeat-",                                             |                  "UserCpu" : 2.8254328,
-      "_id": "id",                                                       |                  "DiskReadBytes" : 0,
-      "_source": {                                                       |                  "NetRxBytes" : 22375,
-        "json": {                                                        |                  "TcpStatTIM" : 149,
-          "startTime": "20190925T000006.151+0900",                       |                  "Mem" : 58.4846,
-          "objName": "/sc-api-demo-s01.localdomain",                     |                  "Swap" : 0,
-          "server_id": "SCCOUTER-DEMO-COLLECTOR",                        |                  "DiskWriteBytes" : 231628,
-          "objHash": "zt77a8",                                           |                  "startTime" : "20190925T000006.151+0900",
-          "objType": "HOST-ScouterDemo",                                 |                  "SysCpu" : 1.1066095,
-          "objHost": "sc-api-demo-s01.localdomain",                      |                  "MemT" : 1837,
-          "objId": "sc-api-demo-s01.localdomain",                        |                  "PageIn" : 0,
-          "objFamily": "host",                                           |                  "NetTxBytes" : 41157
-          "host": {                                                      |                },
-            "startTime": "20190925T000006.151+0900",                     |                "objHost" : "sc-api-demo-s01.localdomain",
-            "MemA": 762,                                                 |                "startTime" : "20190925T000006.151+0900",
-            "TcpStatEST": 84,                                            |                "objFamily" : "host",
-            "DiskReadBytes": 0,                                          |                "objName" : "/sc-api-demo-s01.localdomain",
-            "DiskWriteBytes": 231628,                                    |                "server_id" : "SCCOUTER-DEMO-COLLECTOR",
-            "TcpStatTIM": 149,                                           |                "objType" : "HOST-ScouterDemo"
-            "UserCpu": 2.8254328,                                        |              }
-            "NetRxBytes": 22375,                                         |            }
-            "PageIn": 0,                                                 |          },
-            "NetOutBound": 70,                                           |          "_ingest" : {
-            "TcpStatFIN": 1,                                             |            "timestamp" : "2019-10-07T08:38:00.341Z"
-            "SysCpu": 1.1066095,                                         |          }
-            "NetTxBytes": 41157,                                         |        }
-            "TcpStatCLS": 1,                                             |      }
-            "MemU": 1074,                                                |    ]
-            "Mem": 58.4846,                                              |  }
-            "MemT": 1837,                                                |  
-            "Cpu": 4.6330476,                                            |  
-            "PageOut": 0,                                                |  
-            "Swap": 0,                                                   |  
-            "SwapU": 0,                                                  |  
-            "SwapT": 0,                                                  |  
-            "NetInBound": 165                                            |  
-          }                                                              |  
-        }                                                                |  
-      }                                                                  |  
-    }                                                                    |  
-  ]                                                                      |  
-}                                                                        | 
---------------------------------------------------------------------------------------------------------------------------------------------------------------
+[실행구문]                                                               
+---------------------------------------------------------------------
+POST /_ingest/pipeline/_simulate                                     
+{                                                                    
+  "pipeline": {                                                      
+    "description": "Pipeline for parsing scouter metric_log logs",   
+    "processors": [                                                  
+      {                                                              
+        "rename": {                                                  
+          "field": "json",                                           
+          "target_field": "scouter.log"                              
+        }                                                            
+      },                                                             
+      {                                                              
+        "date": {                                                    
+          "field": "scouter.log.startTime",                          
+          "formats": [                                               
+            "yyyyMMdd'T'HHmmss.SSSZ"                                 
+          ],                                                         
+          "timezone": "Asia/Seoul",                                  
+          "target_field": "@timestamp"                               
+        }                                                            
+      }                                                              
+    ]                                                                
+  },                                                                 
+  "docs": [                                                          
+    {                                                                
+      "_index": "filebeat-",                                         
+      "_id": "id",                                                   
+      "_source": {                                                   
+        "json": {                                                    
+          "startTime": "20190925T000006.151+0900",                   
+          "objName": "/sc-api-demo-s01.localdomain",                 
+          "server_id": "SCCOUTER-DEMO-COLLECTOR",                    
+          "objHash": "zt77a8",                                       
+          "objType": "HOST-ScouterDemo",                             
+          "objHost": "sc-api-demo-s01.localdomain",                  
+          "objId": "sc-api-demo-s01.localdomain",                    
+          "objFamily": "host",                                       
+          "host": {                                                  
+            "startTime": "20190925T000006.151+0900",                 
+            "MemA": 762,                                             
+            "TcpStatEST": 84,                                        
+            "DiskReadBytes": 0,                                      
+            "DiskWriteBytes": 231628,                                
+            "TcpStatTIM": 149,                                       
+            "UserCpu": 2.8254328,                                    
+            "NetRxBytes": 22375,                                     
+            "PageIn": 0,                                             
+            "NetOutBound": 70,                                       
+            "TcpStatFIN": 1,                                         
+            "SysCpu": 1.1066095,                                     
+            "NetTxBytes": 41157,                                     
+            "TcpStatCLS": 1,                                         
+            "MemU": 1074,                                            
+            "Mem": 58.4846,                                          
+            "MemT": 1837,                                              
+            "Cpu": 4.6330476,                                          
+            "PageOut": 0,                                              
+            "Swap": 0,                                                 
+            "SwapU": 0,                                                
+            "SwapT": 0,                                                
+            "NetInBound": 165                                          
+          }                                                            
+        }                                                              
+      }                                                                
+    }                                                                  
+  ]                                                                    
+}                                                                     
+---------------------------------------------------------------------
 
 ```
+![simulater](../assert/filebeat-simpluate.gif)
+
 이런식으로 반복적으로 테스트 하고 원하는 결과가 나올때 까지 pipeline processors 테스트 합니다. 
 테스트 했던 결과를 토대로 pipeline processors를 설정 합니다.   
  
